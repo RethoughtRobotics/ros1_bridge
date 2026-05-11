@@ -391,6 +391,29 @@ static void streamPrimitiveVector(ros::serialization::IStream & stream, VEC_PRIM
   memcpy(&vec.front(), stream.advance(data_len), data_len);
 }
 
+// std::vector<bool> is bit-packed — front() returns a proxy, not bool*.
+// These overloads handle it element-by-element.
+static void streamPrimitiveVector(ros::serialization::OStream & stream, const std::vector<bool> & vec)
+{
+  uint8_t * dest = reinterpret_cast<uint8_t *>(stream.advance(vec.size() * sizeof(uint8_t)));
+  for (size_t i = 0; i < vec.size(); ++i) {
+    dest[i] = static_cast<uint8_t>(vec[i]);
+  }
+}
+
+static void streamPrimitiveVector(ros::serialization::LStream & stream, const std::vector<bool> & vec)
+{
+  stream.advance(vec.size() * sizeof(uint8_t));
+}
+
+static void streamPrimitiveVector(ros::serialization::IStream & stream, std::vector<bool> & vec)
+{
+  const uint8_t * src = reinterpret_cast<const uint8_t *>(stream.advance(vec.size() * sizeof(uint8_t)));
+  for (size_t i = 0; i < vec.size(); ++i) {
+    vec[i] = static_cast<bool>(src[i]);
+  }
+}
+
 @[for m in mapped_msgs]@
 
 @[  if m.ros2_msg.package_name=="std_msgs" and m.ros2_msg.message_name=="Header"]
