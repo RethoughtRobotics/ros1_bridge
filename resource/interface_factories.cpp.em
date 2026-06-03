@@ -319,7 +319,11 @@ void ServiceFactory<
   auto & @(field["ros2"]["name"])2 = req2.@(field["ros2"]["name"]);
 @[        end if]@
 @[        if field["basic"]]@
+@[          if frm == "1"]@
   @(field["ros2"]["name"])@(to) = @(field["ros1"]["name"])@(frm);
+@[          else]@
+  @(field["ros1"]["name"])@(to) = @(field["ros2"]["name"])@(frm);
+@[          end if]@
 @[        else]@
   Factory<@(field["ros1"]["cpptype"]),@(field["ros2"]["cpptype"])>::convert_@(frm)_to_@(to)(
 @[          if frm == "1"]@
