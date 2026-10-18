@@ -98,10 +98,14 @@ int main(int argc, char * argv[])
   ros::AsyncSpinner async_spinner(1);
   async_spinner.start();
 
-  // ROS 2 spinning loop
+  // ROS 2 spinning loop. The node is added once: rclcpp's Executor::spin_node_once() adds it,
+  // rebuilds the wait set over every bridged entity and removes it again for each callback.
+  // On a ~190-topic Baxter bridge that cost ~8 ms per message, capping ROS 2 to ROS 1 traffic near
+  // 115 msgs/s and starving later-registered topics (two arm command streams need ~126).
   rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(ros2_node);
   while (ros1_node.ok() && rclcpp::ok()) {
-    executor.spin_node_once(ros2_node, std::chrono::milliseconds(1000));
+    executor.spin_once(std::chrono::milliseconds(1000));
   }
 
   return 0;
